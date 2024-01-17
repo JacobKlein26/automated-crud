@@ -58,12 +58,12 @@ app.use('/users', automatedCrud({
 | `host` | Host for DB connection | string | `localhost` |  |
 | `port` | Port for DB connection | int/string | `27017` |  |
 | `queryKey` | The key that will be used when querying DB| string | `id` |  |
-| `id_type` | The type of the (auto created) id |  | `number` | See `id_type` section below |
-| `updateMethod` | The operator to use when updating |  | `$set` | See `update_method` section below |
-| `disableAction` | Disable a specific METHOD from CRUD |  | `[]` | Can be Array with `C/R/U/D` as values  |
-| `validation` | Concept: function to validate before C/U, didn't build it yet |  | none | See validation below |
-| `auth` | concept: function to authorize the user before C/R/U/D, didn't build it yet | | none | See authorization below |
-| `authKeys` | Other keys (from req.\<key>) that will be sent to auth function |  | none | |
+| `id_type` | The type of the (auto created) id | string | `number` | See `id_type` section below |
+| `updateMethod` | The operator to use when updating | string | `$set` | See `update_method` section below |
+| `disableAction` | Disable a specific METHOD from CRUD | array  strings | `[]` | Possible values are: `C/R/U/D` |
+| `validation` | Concept: function to validate before C/U, didn't build it yet | Not sure yet | none | See validation below |
+| `auth` | concept: function to authorize the user before C/R/U/D, didn't build it yet | not sure yet | none | See authorization below |
+| `authKeys` | Other keys (from req.\<key>) that will be sent to auth function | array - strings | none | |
 
 
 
