@@ -1,72 +1,122 @@
+
 # AUTOMATED CRUD
-A module to quickly add full CRUD operations to any path with express/mongodb
+A module to get started in seconds with basic CRUD operations
+Built with express (uses `Router`) and mongodb.
 
-It'll add 4 routes to: Create, Read, Update, and Delete DB Objects.
-It'll work as a simple router - just like any different `express.router()` (all paths' will be at / - because the actual pathname will be in the call to it...)
-The paths' will be differentiated using the METHOD (POST/GET/PUT/DELETE)
-By default it'll take ANYTHING you give it, and allow it without any validation - but options allow you to control the schema / auth control / etc
+For most basic setup, install it, require it (or import), connect to DB, and use it. Example:
+```
+...
+const automatedCrud = require('automated-crud')
+automatedCrud.connectDB({
+	// ...options
+	dbName: 'store',
+	collectionName: 'items'
+})
+app.use('/items', automatedCrud())
+app.use('/users', automatedCrud({
+	// ... options
+	collectionName: 'users'
+}))
+...
+```
 
-
-## Routes:
-1. POST: Create a new DB object
-  - Will allways add an ID
-  - Returns the result of the object, 400 if failed validation (if included), 500 if failed to add
-
-2. GET: Get the Object
-  - For a single object pass the queryKey (GET -> /:<key>)
-  - For ALL objects skip the queryKey (GET -> /)
-  - When getting ALL objects, the following queries are supported:
-    - skip: skip X amount of documents
-    - limit: limit to X amount of documents
-    - sortKey: sort the DB when making the query using this key
-    - sortType: sort in asc/desc order (1/-1) 1 is default
-  - Returns:
-    - Getting 1 document - the document, 400 if not found, 500 if failed
-    - Getting all docs - an Array of documents (emtpy if non found), 500 if failed
-
-3. PUT: Update a DB object
-  - Requiers the query key (PUT -> /:<key>) 
-  - Will use $set by default (option)
-  - Returns the updated object, 400 if not found, 500 if failed to update
-
-4. DELETE: Delete a DB Object 
-  - Requiers the query key (DELETE -> /:<key>)
-  - Returns 204 if deleted, 400 if not found, 500 if failed to delete
+---
+### Route Methods:
+1. POST -> Create a new DB object
+	- `id` will be added automatically (except if  `id_type` is set to `skip`)
+	- Will return the object that was added, unless adding failed (auth: 403, validation: 400, other reason: 500)
+2. GET -> Get 1 or all objects
+	- To get 1 object call and include the `queryKey` value (e.g. `/items/1`)
+	- To get all objects call directly (e.g. `/items`) - and you can add the following queries:
+		- skip: skip X amount of docs.
+		- limit: limit to X amount of docs.
+		- sortKey: sort by this DB key.
+		- sortType: sort in asc/desc order (1/-1) 1 is default.
+	- Will return:
+		- Getting 1 doc: the object, 400 if not found, 500 if failed.
+		- Getting all docs: Array of docs, empty if non found, 500 if failed.
+3. PUT -> Update 1 object
+	- Requires the `queryKey` value (e.g. `/items/2`)
+	- Will use `$set` by default, can be changed in options
+	- Returns the (full) updated object, 400 if not found, 500 if failed
+4. DELETE -> Delete 1 object
+	- Requires the `queryKey` value (e.g. `/users/jacobKlein26`)
+	- Returns 204, 400 if not found, 500 if failed
 
 ## Options:
-#### Required:
-  - dbName: The name of the DB
-  - collectionName: The name of the collection
-#### Optional
-  - dbHost: The host for the DB (localhost)
-  - dbPort: The port for the DB (27017)
-  - validation: a function that will be called (C/U) with the Object - and the action will only continue if true is returned
-  - id_type: the type of "id" that will be used 
-    - number (default - will start at 1, and increase)
+- Options can be sent either when calling connectDB or when configuring route, routes has higher priority
+- options sent to first `connectDB` call will be re-used for all routes (unless overwritten)
+- If more then 1 DB is connected the db connection information (`dbURI` or `protocol/host/port`) has to be passed EVERY time a new route is configured (or the first connection will be used)
+
+
+| Option name | explanation | type | default | Memo |
+|--|--|--|--|--|
+| `dbName` | The name of the DB | string | none | Required
+| `collectionName` | The name of the collection| string | none | Required
+| `dbURI` | Full DB connection URI  | string| none | Will overwrite `protocol/host/port` |
+| `protocol` | Protocol for DB connection | string | `mongodb` |  |
+| `host` | Host for DB connection | string | `localhost` |  |
+| `port` | Port for DB connection | int/string | `27017` |  |
+| `queryKey` | The key that will be used when querying DB| string | `id` |  |
+| `id_type` | The type of the (auto created) id |  | `number` | See `id_type` section below |
+| `updateMethod` | The operator to use when updating |  | `$set` | See `update_method` section below |
+| `disableAction` | Disable a specific METHOD from CRUD |  | `[]` | Can be Array with `C/R/U/D` as values  |
+| `validation` | Concept: function to validate before C/U, didn't build it yet |  | none | See validation below |
+| `auth` | concept: function to authorize the user before C/R/U/D, didn't build it yet | | none | See authorization below |
+| `authKeys` | Other keys (from req.\<key>) that will be sent to auth function |  | none | |
+
+
+
+- validation: a function that will be called (C/U) with the Object - and the action will only continue if true is returned
+- id_type: the type of "id" that will be used 
+	- number (default - will start at 1, and increase)
     - random_string
     - random_number
     - skip (if ID is already in the body - or if we're using different key(s))
-  - queryKey: the "key" to use when querying the DB (R/U/D) - id by default
-  - updateMethod: the method to use when updating - default $set, if false the update method won't be set by us (would need to be sent in request body)
-  - disableAction: The ability to disable any action (e.g. if delete's are handled by updating a value that the Object is "inactive")
-  - auth: a function that will be called with the cookies, the action type (C/R/U/D), and authKeys (next...) - and action will only continue if true is returned
-  - authKeys: an array of keys from req.<key> which will be sent to the auth function (e.g. if you want to utilize a use middleware and pass the req.user to the auth) 
-  
+- updateMethod: the method to use when updating - default $set, if false the update method won't be set by us (would need to be sent in request body)
+---
+#### id_type:
+The type of ID that will be used when *C* (POST) is called,  can be:
+    - `number` (default): a number starting at 1 and increasing for every doc
+    - `random_number`: a 16 digit random number
+    - `random_string`: a 16 digit random string
+    - `skip`: don't add an id automatically \
+    If using `skip` - then something unique has to be sent in in the request body, and if the unique value key is not `id` then `queryKey` has to be updated to the correct key
+   > updating queryKey will NOT change id to `skip` - `id_type` will continue to be set under `id` key, but will effectively be ignored (as R/U/D will use the `queryKey` to query the document)
+ ---
+#### update_method:
+see [MongoDB docs](https://www.mongodb.com/docs/manual/reference/operator/update/) for more information about operators.
+Can be set to false if no operator is to be used - AN OPERATOR IS REQUIRED - so this is useful if you want to include more then 1 operator (e.g. `$inc` 1 key and `$set` another key) - but these will have to be sent in request body.
+If `update_method` is defined, the entire request body will be under the operator, for example - when `$set` is used (default):
+`const updateData = { $set: req.body }`
+
+---
+#### validation:
+Still need to work this out.
+Either it'll be a function that will be called for C/U - and only if true is returned will the action (C/U) be completed.
+Or maybe it can be a schema that is passed, and we call the validation ourselves (doing it this way might be a bit more complicated - but will allow us to respond with the reason validation failed,  it'll also make it simpler for setup)
+
+---
+#### authorization:
+Still need to work this out.
+More or less it'll be a function that is called with certain param passed to it (action being performed, cookies, and other information from the request (see `authKeys`)
+The function will decide according to the params given if the user is allowed to perform the action (C/R/U/D), if not return false and we'll send 403
+> If you want to use a middleware that adds req.user, or any other keys into the request, then `authKeys` can be used, 
+> For example: if `authKeys: ['user']` when the auth function is called req.user (from the request) will be passed to it.
+
+---
   
 ## for thought:
   - What about the next() function - should we ever give an option to call that (e.g. if auth fails - maybe call next instead of returning 403)
     - In different words, are we the FULL handler, or can we be used a middleware (in which case we have to call next())
     - as of now we'll build it without it, but the thought exist if I ever want to look at it...
 
-
 ---
 All function names are based that automated-crud is imported on the variable automatedCrud, 
 ```const automatedCrud = require('automated-crud')```
 ### functions 
 1. Main function (```automatedCrud()```)
-  - Builds the actual routes
-<!-- 2. ```setGlobalOptions``` 
-  - Sets options that will be used across the board -->
+    - Builds the actual routes
 2. ```connectDB```
-  - Connect a mongodb instance
-    - if you only connect 1 it'll be reused automatically for all routes, if you connect more then 1 you will have to say the dbURI (or protocol/host/port) and dbName every time you configure routes (or the 1st one will be used)
+    - Connect a mongodb instance
+    - > Note: If you only connect 1 it'll be reused automatically for all routes, if you connect more then 1 you will have to say the dbURI (or protocol/host/port) and dbName every time you configure routes (or the 1st one will be used)
