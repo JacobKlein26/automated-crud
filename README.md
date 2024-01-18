@@ -48,28 +48,29 @@ app.use('/users', automatedCrud({
 When calling get without a queryKey (e.g. calling `/items/` and not `/items/101`), you can add queries to the request to control what you get,  
 You can use the actual DB key as the query, but you can't use the reserved ones (skip, limit, sortKey, and sortType).  
 For example - if you want to query `itemCategory` is `"book"` then call `/items?itemCategory=book` and `{ itemCategory: "book"}` will be queried to the DB.  
-> You can use dot notation (`.`) for nested or advanced queries examples.    
-> \. escapes the nest (see example 2)  
-> All queries are parsed (`parseQueries` option), see Example 3  
+> You can use dot notation (`.`) for nested or advanced queries.  
+> \\. escapes the nest (see example 2)  
+> All queries are parsed for numbers, etc. see `parseQueries` option and Example 3
 
-***Example 1:*** (simple nested object) 
+***Example 1:*** (simple nested object)  
 You want to query the DB item: `{ itemInfo: { category: "book" } }`  
 Call: `/items?itemInfo.category=book`  
 
-***Example 2:*** (Query if a nested array includes one of a few values)
-You want to query the DB item: `{ itemInfo: { categories: ["book", "reading", "romance"]}}`, and you want to query all that *include* "romance" OR "fun".  
-  
-Call: `/items?itemInfo\.categories.$in=romance&itemInfo\.categories.$in=fun` ($in is from [Mongo Docs](https://www.mongodb.com/docs/manual/reference/operator/query/in/) for Array includes one of...)
-> express queries convert multiple of the same query name into an array, so this query will actually be: `$in.itemInfo.categories = ["romance", "fun"]`  
+***Example 2:*** (Query if a nested array includes one of a few values)  
+You want to query the DB item: `{ itemInfo: { categories: ["book", "reading", "romance"]}}`, and you want to query all that include *either* "romance" OR "fun".  
+Call: `/items?itemInfo\.categories.$in=romance&itemInfo\.categories.$in=fun`  
+> ($in is from [Mongo Docs](https://www.mongodb.com/docs/manual/reference/operator/query/in/) for Array includes one of...)  
 
-> *"\."* (escaped dot) will avoid splitting the . (dot) into another nested object, and keep the actual "." - this is usefull when making queries which will only work if you do: `{'itemInfo.categories': {'$in': ['romance','fun']}}` and NOT if you do `{itemInfo: {categories: {'$in': ['romance','fun']}}}`
+> express queries convert multiple of the same query name into an array, so this query will actually be: `itemInfo\.categories.$in = ["romance", "fun"]`  
 
-***Example 3:*** (Query if a value is greather then)
-You want to query the DB item: `{ totalSales: 25} `, and you want to query all that are greater then 20.  
+> *"\\."* (escaped dot) will avoid splitting the . (dot) into another nested object, and keep the actual "." - this is usefull when making queries which will only work if you do: `{'itemInfo.categories': {'$in': ['romance','fun']}}` and NOT if you do `{itemInfo: {categories: {'$in': ['romance','fun']}}}`
+
+***Example 3:*** (Query if a value is greather then)  
+You want to query the DB item: `{totalSales: 25}`, and you want to query all that are greater then 20.  
 Call: `/items?totalSales.$gt=20`  
 
 > Queries will be converted using [express-query-parser](https://www.npmjs.com/package/express-query-parser) so all numbers/booleans/null/undefined are taken care of.  
-> if you want to skip this (e.g. you want to be able to query a number as a string like: `{age: "26"}`) then set option parseQueries to `false`
+> if you want to skip this (e.g. you want to be able to query a number as a string like: `{age: "26"}`) then set option `parseQueries` to `false`
 
 
 ## Options:
@@ -93,17 +94,17 @@ Call: `/items?totalSales.$gt=20`
 | `validation` | Concept: function to validate before C/U, didn't build it yet | Not sure yet | none | See validation below |
 | `auth` | concept: function to authorize the user before C/R/U/D, didn't build it yet | not sure yet | none | See authorization below |
 | `authKeys` | Other keys (from req.\<key>) that will be sent to auth function | array - strings | none | |
-| `parseQueries` | parse queries in GET | boolean | true | See [GET queries](#get-queries) section |
+| `parseQueries` | parse queries in GET | boolean | true | See [GET queries](#get-queries) section Example 3 |
 
 
 #### Future options:
 1. validation: already in the README, but not yet implemented
 2. auth: already in the README, but not yet implemented
-3. sendErrors: include in the response the reason why 400/500 response code is being sent (this will include the query for get)
-4. logErrors: log the reasson why 400/500 response codee is being sent (this will include the query for get)
+3. sendErrors: include in the response body the reason why 400/500 response code is being sent (this will include the query for GET)
+4. logErrors: log the reasson why 400/500 response code is being sent (this will include the query for GET)
 
 ---
-Other options in thought:
+#### Other options in thought:
 1. Advanced (hidden) security queries
 	- Right now you can query for things using URL queries, (e.g. `{a: "b"}` by sending `?a=b`), (see the [GET queries](#get-queries) section), but for quries that require middleware or need to be hidden (e.g. userAccess includes userId) URL queries won't work...
 
@@ -147,9 +148,10 @@ The function will decide according to the params given if the user is allowed to
     - as of now we'll build it without it, but the thought exist if I ever want to look at it...
 
 ---
-All function names are based that automated-crud is imported on the variable automatedCrud, 
-```const automatedCrud = require('automated-crud')```
-### functions 
+## functions 
+All function names are based that automated-crud is imported on the variable automatedCrud,  
+```const automatedCrud = require('automated-crud')```  
+
 1. Main function (```automatedCrud()```)
     - Builds the actual routes
 2. ```connectDB```
