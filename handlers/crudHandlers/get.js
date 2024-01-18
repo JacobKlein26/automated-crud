@@ -19,7 +19,7 @@ const handler = options => {
       sort = {};
 
     if (req.params.key) {
-      if (options.id_type.includes('number')) req.params.key = parseInt(req.params.key);
+      if (options.id_type.includes('number') && options.queryKey === 'id') req.params.key = parseInt(req.params.key);
       query = { [options.queryKey]: req.params.key };
       limit = 1;
     } else {

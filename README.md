@@ -65,42 +65,39 @@ app.use('/users', automatedCrud({
 | `auth` | concept: function to authorize the user before C/R/U/D, didn't build it yet | not sure yet | none | See authorization below |
 | `authKeys` | Other keys (from req.\<key>) that will be sent to auth function | array - strings | none | |
 
-
-
-- validation: a function that will be called (C/U) with the Object - and the action will only continue if true is returned
-- id_type: the type of "id" that will be used 
-	- number (default - will start at 1, and increase)
-    - random_string
-    - random_number
-    - skip (if ID is already in the body - or if we're using different key(s))
-- updateMethod: the method to use when updating - default $set, if false the update method won't be set by us (would need to be sent in request body)
 ---
+Other options in thought:
+1. When querying data - have a way to add filters (actual queries)
+	- This requires 2 levels of filters 1. items that can be filtered using query params in URL (e.g. bookAuthor, itemCategory), and 2. items that require middleware and security (e.g. userAccess includes userId)
+
+---
+### Advanced Variables explenation
 #### id_type:
-The type of ID that will be used when *C* (POST) is called,  can be:
-    - `number` (default): a number starting at 1 and increasing for every doc
-    - `random_number`: a 16 digit random number
-    - `random_string`: a 16 digit random string
-    - `skip`: don't add an id automatically \
-    If using `skip` - then something unique has to be sent in in the request body, and if the unique value key is not `id` then `queryKey` has to be updated to the correct key
-   > updating queryKey will NOT change id to `skip` - `id_type` will continue to be set under `id` key, but will effectively be ignored (as R/U/D will use the `queryKey` to query the document)
- ---
+The type of ID that will be used when *C* (POST) is called,  can be:  
+    - `number` (default): a number starting at 1 and increasing for every doc  
+    - `random_number`: a 16 digit random number  
+    - `random_string`: a 16 digit random string  
+    - `skip`: don't add an id automatically  
+    If using `skip` - then something unique has to be sent in in the request body, and if the unique value key is not `id` then `queryKey` has to be updated to the correct key  
+  > updating queryKey will NOT change id to `skip` - `id_type` will continue to be set under `id` key, but will effectively be ignored (as R/U/D will use the `queryKey` to query the document)  
+
+---
 #### update_method:
-see [MongoDB docs](https://www.mongodb.com/docs/manual/reference/operator/update/) for more information about operators.
-Can be set to false if no operator is to be used - AN OPERATOR IS REQUIRED - so this is useful if you want to include more then 1 operator (e.g. `$inc` 1 key and `$set` another key) - but these will have to be sent in request body.
-If `update_method` is defined, the entire request body will be under the operator, for example - when `$set` is used (default):
-`const updateData = { $set: req.body }`
+see [MongoDB docs](https://www.mongodb.com/docs/manual/reference/operator/update/) for more information about operators.  
+Can be set to false if no operator is to be used - *AN OPERATOR IS REQUIRED* - so this is useful if you want to include more then 1 operator (e.g. `$inc` 1 key and `$set` another key) - but these will have to be sent in request body.  
+If `update_method` is defined, the entire request body will be under the operator, for example - when `$set` is used (default): `const updateData = { $set: req.body }`
 
 ---
 #### validation:
-Still need to work this out.
-Either it'll be a function that will be called for C/U - and only if true is returned will the action (C/U) be completed.
-Or maybe it can be a schema that is passed, and we call the validation ourselves (doing it this way might be a bit more complicated - but will allow us to respond with the reason validation failed,  it'll also make it simpler for setup)
+Still need to work this out.  
+More or less a function that will be called (C/U) with the Object - and the action will only continue if true is returned  
+But might be better to be a schema that is passed, and we call the validation ourselves (doing it this way might be a bit more complicated - but will allow us to respond with the reason validation failed,  it'll also make it simpler for setup)
 
 ---
 #### authorization:
-Still need to work this out.
-More or less it'll be a function that is called with certain param passed to it (action being performed, cookies, and other information from the request (see `authKeys`)
-The function will decide according to the params given if the user is allowed to perform the action (C/R/U/D), if not return false and we'll send 403
+Still need to work this out.  
+More or less it'll be a function that is called with certain param passed to it (action being performed, cookies, and other information from the request (see `authKeys`)  
+The function will decide according to the params given if the user is allowed to perform the action (C/R/U/D), if not return false and we'll send 403  
 > If you want to use a middleware that adds req.user, or any other keys into the request, then `authKeys` can be used, 
 > For example: if `authKeys: ['user']` when the auth function is called req.user (from the request) will be passed to it.
 

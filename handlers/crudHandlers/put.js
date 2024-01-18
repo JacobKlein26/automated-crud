@@ -23,7 +23,7 @@ const handler = options => {
       return res.sendStatus(400);
     }
 
-    if (options.id_type.includes('number')) req.params.key = parseInt(req.params.key);
+    if (options.id_type.includes('number') && options.queryKey === 'id') req.params.key = parseInt(req.params.key);
     const query = { [options.queryKey]: req.params.key };
 
     let updateQuery = { ...data };
@@ -34,7 +34,7 @@ const handler = options => {
       .updateOne(query, updateQuery)
       .catch(e => (err = e));
     if (err) return res.status(500).json({ error: err?.message || err });
-    if (!result.matchedCount) return res.status(400).json({ error: `did not find any document with value: '${req.params.key}' for key: '${options.queryKey}'` });
+    if (!result.matchedCount) return res.status(400).json({ error: `did not find any document with {${options.queryKey}: ${req.params.key}}` });
     // update doesn't return the "final" object, so I'll just get it...
     const updatedObj = await dbModule
       .getDB(options)
