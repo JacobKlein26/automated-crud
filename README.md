@@ -104,9 +104,8 @@ Call: `/items?totalSales.$gt=20`
 
 ---
 Other options in thought:
-1. Advanced security queries
-	- Right now you can query for things that can be changed by the user, (e.g. `bookAuthor: "Jacob"`), see the [GET queries](#get-queries) section
-	 items that require middleware and security (e.g. userAccess includes userId)
+1. Advanced (hidden) security queries
+	- Right now you can query for things using URL queries, (e.g. `{a: "b"}` by sending `?a=b`), (see the [GET queries](#get-queries) section), but for quries that require middleware or need to be hidden (e.g. userAccess includes userId) URL queries won't work...
 
 ---
 
