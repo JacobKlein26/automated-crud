@@ -4,7 +4,6 @@ const getDBURI = require('./getURI.js');
 const getClient = options => dbs[getDBURI(options)]
 const getDB = options => {
   const client = getClient(options)
-  // console.log('dbs: ', dbs, 'dbURI', getDBURI(options),'client: ', client);
   return client.db(options.dbName).collection(options.collectionName)
 }
 

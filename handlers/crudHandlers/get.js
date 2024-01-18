@@ -28,7 +28,6 @@ const handler = options => {
       }
       query = buildDBQueryFromQueries(req.query)
     }
-    console.log('will query: ', query);
     let result = await dbModule
       .getDB(options)
       .find(query, { projection: { _id: 0 }, skip, limit, sort })
