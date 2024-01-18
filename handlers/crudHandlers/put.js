@@ -2,8 +2,8 @@ const getOtherAuthKeys = require('../getOtherAuthKeys.js');
 const dbModule = require('../../db/db.js');
 
 const handler = options => {
-  let err;
   return async (req, res, next) => {
+    let err;
     // console.log('POST, options: ', options);
     const data = req.body;
     if (!data) return res.status(400).json({ error: 'empty request body' });

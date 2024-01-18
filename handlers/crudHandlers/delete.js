@@ -2,8 +2,8 @@ const getOtherAuthKeys = require('../getOtherAuthKeys.js');
 const dbModule = require('../../db/db.js');
 
 const handler = options => {
-  let err;
   return async (req, res, next) => {
+    let err;
     // TODO: test and make sure auth and authKeys works
     if (options.auth) {
       const args = ['C', { ...req.cookies, ...req.signedCookies }, { ...getOtherAuthKeys(options.authKeys, req) }];

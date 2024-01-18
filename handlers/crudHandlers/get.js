@@ -1,11 +1,10 @@
 const getOtherAuthKeys = require('../getOtherAuthKeys.js');
 const dbModule = require('../../db/db.js');
-
+const buildDBQueryFromQueries = require('../buildDBQueryFromQueries.js')
 const handler = options => {
-  let err;
   return async (req, res, next) => {
+    let err;
     // console.log('POST, options: ', options);
-    // if (!req.params.key) return res.status(400).json({ error: `key (the ${options.queryKey}) is required for update` });
 
     // TODO: test and make sure auth and authKeys works
     if (options.auth) {
@@ -17,19 +16,20 @@ const handler = options => {
       limit = 0,
       skip = 0,
       sort = {};
-
     if (req.params.key) {
       if (options.id_type.includes('number') && options.queryKey === 'id') req.params.key = parseInt(req.params.key);
       query = { [options.queryKey]: req.params.key };
       limit = 1;
     } else {
-      limit = parseInt(req.query.limit) || 0;
-      skip = parseInt(req.query.skip) || 0;
+      limit = req.query.limit || 0;
+      skip = req.query.skip || 0;
       if (req.query.sortKey) {
-        if (req.query.sortType && !['1', '-1'].includes(req.query.sortType)) return res.status(400).json({ error: 'sortType needs to be either 1 or -1' });
-        sort = { [req.query.sortKey]: parseInt(req.query.sortType) || 1 };
+        if (req.query.sortType && ![1, -1].includes(req.query.sortType)) return res.status(400).json({ error: 'sortType needs to be either 1 or -1' });
+        sort = { [req.query.sortKey]: req.query.sortType || 1 };
       }
+      query = buildDBQueryFromQueries(req.query)
     }
+    console.log('will query: ', query);
     let result = await dbModule
       .getDB(options)
       .find(query, { projection: { _id: 0 }, skip, limit, sort })

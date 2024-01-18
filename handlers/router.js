@@ -1,4 +1,5 @@
 const express = require('express');
+const {queryParser} = require('express-query-parser')
 const getDBURI = require('../db/getURI.js');
 
 const addHandlers = async (router, options, db) => {
@@ -19,6 +20,12 @@ const routerBuilder = (options, db) => {
   // console.log('routerBuilder, options:', options);
   const router = express.Router();
   router.use(express.json());
+  if (options.parseQueries) router.use(queryParser({
+    parseNull: true,
+    parseUndefined: true,
+    parseBoolean: true,
+    parseNumber: true
+  }))
   addHandlers(router, options, db);
   return router;
 };

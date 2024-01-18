@@ -32,6 +32,7 @@ app.use('/users', automatedCrud({
 		- limit: limit to X amount of docs.
 		- sortKey: sort by this DB key.
 		- sortType: sort in asc/desc order (1/-1) 1 is default.
+		- custom: see more info below
 	- Will return:
 		- Getting 1 doc: the object, 400 if not found, 500 if failed.
 		- Getting all docs: Array of docs, empty if non found, 500 if failed.
@@ -42,6 +43,34 @@ app.use('/users', automatedCrud({
 4. DELETE -> Delete 1 object
 	- Requires the `queryKey` value (e.g. `/users/jacobKlein26`)
 	- Returns 204, 400 if not found, 500 if failed
+
+#### GET queries
+When calling get without a queryKey (e.g. calling `/items/` and not `/items/101`), you can add queries to the request to control what you get,  
+You can use the actual DB key as the query, but you can't use the reserved ones (skip, limit, sortKey, and sortType).  
+For example - if you want to query `itemCategory` is `"book"` then call `/items?itemCategory=book` and `{ itemCategory: "book"}` will be queried to the DB.  
+> You can use dot notation (`.`) for nested or advanced queries examples.    
+> \. escapes the nest (see example 2)  
+> All queries are parsed (`parseQueries` option), see Example 3  
+
+***Example 1:*** (simple nested object) 
+You want to query the DB item: `{ itemInfo: { category: "book" } }`  
+Call: `/items?itemInfo.category=book`  
+
+***Example 2:*** (Query if a nested array includes one of a few values)
+You want to query the DB item: `{ itemInfo: { categories: ["book", "reading", "romance"]}}`, and you want to query all that *include* "romance" OR "fun".  
+  
+Call: `/items?itemInfo\.categories.$in=romance&itemInfo\.categories.$in=fun` ($in is from [Mongo Docs](https://www.mongodb.com/docs/manual/reference/operator/query/in/) for Array includes one of...)
+> express queries convert multiple of the same query name into an array, so this query will actually be: `$in.itemInfo.categories = ["romance", "fun"]`  
+
+> *"\."* (escaped dot) will avoid splitting the . (dot) into another nested object, and keep the actual "." - this is usefull when making queries which will only work if you do: `{'itemInfo.categories': {'$in': ['romance','fun']}}` and NOT if you do `{itemInfo: {categories: {'$in': ['romance','fun']}}}`
+
+***Example 3:*** (Query if a value is greather then)
+You want to query the DB item: `{ totalSales: 25} `, and you want to query all that are greater then 20.  
+Call: `/items?totalSales.$gt=20`  
+
+> Queries will be converted using [express-query-parser](https://www.npmjs.com/package/express-query-parser) so all numbers/booleans/null/undefined are taken care of.  
+> if you want to skip this (e.g. you want to be able to query a number as a string like: `{age: "26"}`) then set option parseQueries to `false`
+
 
 ## Options:
 - Options can be sent either when calling connectDB or when configuring route, routes has higher priority
@@ -64,13 +93,23 @@ app.use('/users', automatedCrud({
 | `validation` | Concept: function to validate before C/U, didn't build it yet | Not sure yet | none | See validation below |
 | `auth` | concept: function to authorize the user before C/R/U/D, didn't build it yet | not sure yet | none | See authorization below |
 | `authKeys` | Other keys (from req.\<key>) that will be sent to auth function | array - strings | none | |
+| `parseQueries` | parse queries in GET | boolean | true | See [GET queries](#get-queries) section |
+
+
+#### Future options:
+1. validation: already in the README, but not yet implemented
+2. auth: already in the README, but not yet implemented
+3. sendErrors: include in the response the reason why 400/500 response code is being sent (this will include the query for get)
+4. logErrors: log the reasson why 400/500 response codee is being sent (this will include the query for get)
 
 ---
 Other options in thought:
-1. When querying data - have a way to add filters (actual queries)
-	- This requires 2 levels of filters 1. items that can be filtered using query params in URL (e.g. bookAuthor, itemCategory), and 2. items that require middleware and security (e.g. userAccess includes userId)
+1. Advanced security queries
+	- Right now you can query for things that can be changed by the user, (e.g. `bookAuthor: "Jacob"`), see the [GET queries](#get-queries) section
+	 items that require middleware and security (e.g. userAccess includes userId)
 
 ---
+
 ### Advanced Variables explenation
 #### id_type:
 The type of ID that will be used when *C* (POST) is called,  can be:  

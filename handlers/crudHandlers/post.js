@@ -23,8 +23,8 @@ const getId = options =>
     return res(result); // I don't validate, but the "id" field in the DB should have an index with unique, so the tiny chance it already exists - it should simply fail to insert... (which should reply with error - and user can try again)
   });
 const handler = options => {
-  let err;
   return async (req, res, next) => {
+    let err;
     // console.log('POST, options: ', options);
     const data = req.body;
     if (!data) return res.status(400).json({ error: 'empty request body' });

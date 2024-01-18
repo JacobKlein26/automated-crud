@@ -11,7 +11,10 @@ let globalOptions = {
   disableAction: [],
   id_type: 'number',
   queryKey: 'id',
-  updateMethod: '$set'
+  updateMethod: '$set',
+  parseQueries: true,
+  // sendErrors: false, // add the ability to control if the reason 400/500 is being sent should be in the response body (including the query when calling get)
+  // logErrors: true, // add the ability to control if the reason 400/500 is being sent should be logged (including the query when calling get)
 }
 const dbs = {}
 
