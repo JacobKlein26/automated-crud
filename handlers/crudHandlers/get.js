@@ -4,7 +4,6 @@ const buildDBQueryFromQueries = require('../buildDBQueryFromQueries.js')
 const handler = options => {
   return async (req, res, next) => {
     let err;
-    // console.log('POST, options: ', options);
 
     // TODO: test and make sure auth and authKeys works
     if (options.auth) {

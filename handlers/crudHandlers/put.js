@@ -4,7 +4,6 @@ const dbModule = require('../../db/db.js');
 const handler = options => {
   return async (req, res, next) => {
     let err;
-    // console.log('POST, options: ', options);
     const data = req.body;
     if (!data) return res.status(400).json({ error: 'empty request body' });
     if (!req.params.key) return res.status(400).json({ error: `key (the ${options.queryKey}) is required for update` });

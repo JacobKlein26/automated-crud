@@ -8,7 +8,6 @@ const getLatestNumberId = options =>
     const db = client.db(options.dbName).collection(options.collectionName);
 
     latestDoc = await db.findOne({}, {sort:['id',1], projection:{id:1}}).catch(e=>err=e)
-    console.log('latestDoc:', latestDoc);
     if (err) return rej(err)
     res(latestDoc?.id || 0)
   });

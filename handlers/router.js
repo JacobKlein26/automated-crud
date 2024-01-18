@@ -7,7 +7,7 @@ const addHandlers = async (router, options, db) => {
 
   if (!dbConnected) {
     const dbURI = getDBURI(options);
-    console.error(`automated-crud failed -> db '${dbURI}' not connected, will use 500`);
+    console.error(`ERROR: automated-crud -> db at '${dbURI}' not connected, will use 500. `);
     return routerBuilder.all500(router);
   }
 
@@ -17,7 +17,6 @@ const addHandlers = async (router, options, db) => {
   if (!options.disableAction.includes('D')) router.delete('/:key', require('./crudHandlers/delete.js')(options));
 };
 const routerBuilder = (options, db) => {
-  // console.log('routerBuilder, options:', options);
   const router = express.Router();
   router.use(express.json());
   if (options.parseQueries) router.use(queryParser({
